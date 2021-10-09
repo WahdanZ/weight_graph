@@ -11,9 +11,11 @@ class WeightGraphWidget extends StatefulWidget {
 class _WeightGraphWidgetState extends State<WeightGraphWidget> {
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return SizedBox(
-      width: 500,
-      height: 500,
+      width: width / 2,
+      height: height / 2,
       child: CustomPaint(
         painter: GraphPainter(),
       ),

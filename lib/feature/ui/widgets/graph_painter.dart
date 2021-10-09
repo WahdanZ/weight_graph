@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:math';
+
+import 'package:flutter/material.dart' hide TextStyle;
+import 'package:flutter/painting.dart';
+import 'package:weight_graph/feature/ui/widgets/graph_entity.dart';
 
 class GraphPainter extends CustomPainter {
   late double leftOffsetStart;
@@ -6,14 +10,25 @@ class GraphPainter extends CustomPainter {
   late double drawingWidth;
   late double drawingHeight;
   int numberOfVerticalLines = 12;
-  GraphPainter();
+  int numberOfHorizontalLabels = 6;
+  List<GraphEntity> _items;
+  GraphPainter({
+    List<GraphEntity> items = const [],
+  }) : _items = items {
+    _items = List.generate(
+        10, (index) => GraphEntity(Random().nextInt(100).toDouble()));
+    _items.sort((l, r) => l.value.compareTo(r.value));
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     leftOffsetStart = size.width * 0.05;
     topOffsetEnd = size.height * 0.9;
     drawingWidth = size.width * 0.9;
     drawingHeight = topOffsetEnd;
+
     _drawVerticalLines(canvas);
+    _drawHorizontalLabels(canvas);
   }
 
   void _drawVerticalLines(Canvas canvas) {
@@ -21,23 +36,43 @@ class GraphPainter extends CustomPainter {
 
     for (int line = 0; line < numberOfVerticalLines; line++) {
       final paint = Paint()
-        ..color = Colors.grey.shade50
+        ..color = Colors.grey.shade200
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       double yOffset = line * offsetStep;
       canvas.drawLine(
-        Offset(
-          leftOffsetStart + yOffset,
-          drawingHeight,
-        ),
-        Offset(leftOffsetStart + yOffset, drawingHeight * .02),
-        paint..color = Colors.grey,
-      );
+          Offset(
+            leftOffsetStart + yOffset,
+            drawingHeight,
+          ),
+          Offset(leftOffsetStart + yOffset, drawingHeight * .02),
+          paint);
+    }
+  }
+
+  void _drawHorizontalLabels(Canvas canvas) {
+    final maxValue = _items.last.value;
+    final minValue = _items.first.value;
+    print("maxValue $maxValue , maxValue $minValue");
+    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+    int lineStep = (maxValue - minValue) ~/ (numberOfHorizontalLabels - 1);
+    print("yOffsetStep $yOffsetStep");
+    for (int line = 0; line < numberOfHorizontalLabels; line++) {
+      double yOffset = line * yOffsetStep;
+      TextSpan span = TextSpan(
+          style: const TextStyle(color: Colors.grey, fontSize: 10),
+          text: "${(maxValue - (line * lineStep)).toInt()} ");
+      TextPainter tp = TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, Offset(0.0, yOffset + 5));
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+    return true;
   }
 }
