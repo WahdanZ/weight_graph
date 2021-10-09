@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart' hide TextStyle;
 import 'package:flutter/painting.dart';
@@ -52,6 +53,7 @@ class GraphPainter extends CustomPainter {
     _drawVerticalLines(canvas);
     _drawBottomLabels(canvas);
     _drawLeftLabels(canvas, size);
+    _drawHorizontalLine(canvas, size);
     _drawLines(canvas);
     _drawCircle(canvas);
   }
@@ -113,20 +115,33 @@ class GraphPainter extends CustomPainter {
           textDirection: TextDirection.ltr);
       tp.layout(maxWidth: 20);
       tp.paint(canvas, Offset(0.0, yOffset + 5));
-      _drawHorizontalLine(canvas, yOffset + 5, size);
+      //   _drawHorizontalLine(canvas, yOffset + 5, size);
     }
   }
 
-  void _drawHorizontalLine(Canvas canvas, double yOffset, Size size) {
+  void _drawHorizontalLine(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.grey.shade200
+      ..color = Colors.green.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    canvas.drawLine(
-      Offset(leftOffsetStart, 5 + yOffset),
-      Offset(size.width, 5 + yOffset),
-      paint,
-    );
+    final points = [
+      Offset(leftOffsetStart, drawingHeight / 2),
+      Offset(size.width, drawingHeight / 2),
+    ];
+    double dashWidth = 9, dashSpace = 5, startX = leftOffsetStart;
+
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, drawingHeight / 2),
+          Offset(startX + dashWidth, drawingHeight / 2), paint);
+      startX += dashWidth + dashSpace;
+    }
+    //   canvas.drawPoints(PointMode.polygon, points, paint);
+
+    // canvas.drawLine(
+    //   Offset(leftOffsetStart, drawingHeight / 2),
+    //   Offset(size.width, drawingHeight / 2),
+    //   paint,
+    // );
   }
 
   void _drawLines(
@@ -136,8 +151,9 @@ class GraphPainter extends CustomPainter {
     final minValue = _items.map((e) => e.value).reduce(min);
     final paint = Paint()
       ..color = Colors.green
+      ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0;
+      ..strokeWidth = 4.0;
     int lineStep =
         ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
     double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
