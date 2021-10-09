@@ -15,16 +15,34 @@ class GraphPainter extends CustomPainter {
   GraphPainter({
     List<GraphEntity> items = const [],
   }) : _items = items {
-    _items = List.generate(
-        6,
-        (index) => GraphEntity(Random().nextInt(100).toDouble(),
-            DateTime(2021, 10, Random().nextInt(20))));
+    _items = [
+      GraphEntity(
+        10,
+        DateTime(2021, 10, 1),
+      ),
+      GraphEntity(
+        3,
+        DateTime(2021, 10, 2),
+      ),
+      GraphEntity(
+        2,
+        DateTime(2021, 10, 3),
+      ),
+      GraphEntity(
+        5,
+        DateTime(2021, 10, 4),
+      ),
+      GraphEntity(
+        9,
+        DateTime(2021, 10, 5),
+      ),
+    ];
     _items.sort((l, r) => l.dateTime.compareTo(r.dateTime));
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    leftOffsetStart = size.width * 0.05;
+    leftOffsetStart = size.width * 0.10;
     topOffsetEnd = size.height * 0.9;
     drawingWidth = size.width * 0.9;
     drawingHeight = topOffsetEnd;
@@ -33,7 +51,9 @@ class GraphPainter extends CustomPainter {
 
     _drawVerticalLines(canvas);
     _drawBottomLabels(canvas);
-    _drawLeftLabels(canvas);
+    _drawLeftLabels(canvas, size);
+    _drawLines(canvas);
+    _drawCircle(canvas);
   }
 
   void _drawBottomLabels(Canvas canvas) {
@@ -49,14 +69,14 @@ class GraphPainter extends CustomPainter {
           textAlign: TextAlign.center,
           textDirection: TextDirection.ltr);
       tp.layout();
-      tp.paint(canvas, Offset(offsetX + offsetStep - 10, 10.0 + drawingHeight));
+      tp.paint(canvas, Offset(offsetX - 10, 10.0 + drawingHeight));
     }
   }
 
   void _drawVerticalLines(Canvas canvas) {
     double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
 
-    for (int line = 0; line < numberOfVerticalLines + 1; line++) {
+    for (int line = 0; line < numberOfVerticalLines; line++) {
       final paint = Paint()
         ..color = Colors.grey.shade200
         ..style = PaintingStyle.stroke
@@ -72,12 +92,16 @@ class GraphPainter extends CustomPainter {
     }
   }
 
-  void _drawLeftLabels(Canvas canvas) {
+  void _drawLeftLabels(Canvas canvas, Size size) {
     final maxValue = _items.map((e) => e.value).reduce(max);
     final minValue = _items.map((e) => e.value).reduce(min);
-    print("maxValue $maxValue , maxValue $minValue");
+
     double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
-    int lineStep = (maxValue - minValue) ~/ (numberOfHorizontalLabels - 1);
+    int lineStep =
+        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
+    print("maxValue $maxValue , maxValue $minValue");
+
+    print("LineStep  $lineStep");
     for (int line = 0; line < numberOfHorizontalLabels; line++) {
       double yOffset = line * yOffsetStep;
       TextSpan span = TextSpan(
@@ -87,8 +111,82 @@ class GraphPainter extends CustomPainter {
           text: span,
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr);
-      tp.layout();
+      tp.layout(maxWidth: 20);
       tp.paint(canvas, Offset(0.0, yOffset + 5));
+      _drawHorizontalLine(canvas, yOffset + 5, size);
+    }
+  }
+
+  void _drawHorizontalLine(Canvas canvas, double yOffset, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade200
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawLine(
+      Offset(leftOffsetStart, 5 + yOffset),
+      Offset(size.width, 5 + yOffset),
+      paint,
+    );
+  }
+
+  void _drawLines(
+    Canvas canvas,
+  ) {
+    final maxValue = _items.map((e) => e.value).reduce(max);
+    final minValue = _items.map((e) => e.value).reduce(min);
+    final paint = Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    int lineStep =
+        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
+    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+
+    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
+    for (int i = 0; i < _items.length - 1; i++) {
+      double relativeYposition = (maxValue - _items[i].value) / lineStep;
+      double yOffset = 8 + relativeYposition * yOffsetStep;
+      double relativeYposition2 = (maxValue - _items[i + 1].value) / lineStep;
+      double yOffset2 = 8 + relativeYposition2 * yOffsetStep;
+      Offset startEntryOffset = Offset(
+        leftOffsetStart + offsetStep * i,
+        yOffset,
+      );
+      Offset endEntryOffset = Offset(
+        leftOffsetStart + (offsetStep * (i + 1)),
+        yOffset2,
+      );
+      canvas.drawLine(startEntryOffset, endEntryOffset, paint);
+    }
+  }
+
+  void _drawCircle(
+    Canvas canvas,
+  ) {
+    final maxValue = _items.map((e) => e.value).reduce(max);
+    final minValue = _items.map((e) => e.value).reduce(min);
+    final paint = Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    final paintC = Paint()
+      ..style = PaintingStyle.fill
+      ..color = Colors.white
+      ..strokeWidth = 3.0;
+    int lineStep =
+        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
+    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+
+    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
+    for (int i = 0; i < _items.length; i++) {
+      double relativeYposition2 = (maxValue - _items[i].value) / lineStep;
+      double yOffset2 = 8 + relativeYposition2 * yOffsetStep;
+      Offset endEntryOffset = Offset(
+        leftOffsetStart + (offsetStep * (i)),
+        yOffset2,
+      );
+      canvas.drawCircle(endEntryOffset, 3.0, paint);
+      canvas.drawCircle(endEntryOffset, 3.0, paintC);
     }
   }
 
