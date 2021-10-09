@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide TextStyle;
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:weight_graph/feature/ui/widgets/graph_entity.dart';
 
 class GraphPainter extends CustomPainter {
@@ -12,33 +14,22 @@ class GraphPainter extends CustomPainter {
   late double drawingHeight;
   int numberOfVerticalLines = 5;
   int numberOfHorizontalLabels = 6;
-  List<GraphEntity> _items;
+  late final double minValue;
+  late final double maxValue;
+  late final List<GraphEntity> _items;
   GraphPainter({
     List<GraphEntity> items = const [],
-  }) : _items = items {
-    _items = [
-      GraphEntity(
-        10,
-        DateTime(2021, 10, 1),
-      ),
-      GraphEntity(
-        3,
-        DateTime(2021, 10, 2),
-      ),
-      GraphEntity(
-        2,
-        DateTime(2021, 10, 3),
-      ),
-      GraphEntity(
-        5,
-        DateTime(2021, 10, 4),
-      ),
-      GraphEntity(
-        9,
-        DateTime(2021, 10, 5),
-      ),
-    ];
-    _items.sort((l, r) => l.dateTime.compareTo(r.dateTime));
+  }) {
+    _items = items;
+    if (_items.isNotEmpty && _items.length > 1) {
+      _items.sort((l, r) => l.dateTime.compareTo(r.dateTime));
+      _items.toSet();
+      maxValue = _items.map((e) => e.value).reduce(max);
+      minValue = _items.map((e) => e.value).reduce(min);
+    } else {
+      maxValue = _items.firstOrNull?.value ?? 0.0;
+      minValue = _items.firstOrNull?.value ?? 0.0;
+    }
   }
 
   @override
@@ -47,10 +38,11 @@ class GraphPainter extends CustomPainter {
     topOffsetEnd = size.height * 0.9;
     drawingWidth = size.width * 0.9;
     drawingHeight = topOffsetEnd;
+
     numberOfVerticalLines =
         _items.map((e) => e.dateTime).toSet().toList().length;
-
     _drawVerticalLines(canvas);
+
     _drawBottomLabels(canvas);
     _drawLeftLabels(canvas, size);
     _drawHorizontalLine(canvas, size);
@@ -95,12 +87,8 @@ class GraphPainter extends CustomPainter {
   }
 
   void _drawLeftLabels(Canvas canvas, Size size) {
-    final maxValue = _items.map((e) => e.value).reduce(max);
-    final minValue = _items.map((e) => e.value).reduce(min);
-
-    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
-    int lineStep =
-        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
+    double yOffsetStep = _getYOffsetStep();
+    int lineStep = _getLineStep();
     print("maxValue $maxValue , maxValue $minValue");
 
     print("LineStep  $lineStep");
@@ -111,10 +99,10 @@ class GraphPainter extends CustomPainter {
           text: "${(maxValue - (line * lineStep)).toInt()}");
       TextPainter tp = TextPainter(
           text: span,
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.right,
           textDirection: TextDirection.ltr);
       tp.layout(maxWidth: 20);
-      tp.paint(canvas, Offset(0.0, yOffset + 5));
+      tp.paint(canvas, Offset(leftOffsetStart - 20, yOffset + 5));
       //   _drawHorizontalLine(canvas, yOffset + 5, size);
     }
   }
@@ -124,10 +112,6 @@ class GraphPainter extends CustomPainter {
       ..color = Colors.green.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    final points = [
-      Offset(leftOffsetStart, drawingHeight / 2),
-      Offset(size.width, drawingHeight / 2),
-    ];
     double dashWidth = 9, dashSpace = 5, startX = leftOffsetStart;
 
     while (startX < size.width) {
@@ -135,35 +119,25 @@ class GraphPainter extends CustomPainter {
           Offset(startX + dashWidth, drawingHeight / 2), paint);
       startX += dashWidth + dashSpace;
     }
-    //   canvas.drawPoints(PointMode.polygon, points, paint);
-
-    // canvas.drawLine(
-    //   Offset(leftOffsetStart, drawingHeight / 2),
-    //   Offset(size.width, drawingHeight / 2),
-    //   paint,
-    // );
   }
 
   void _drawLines(
     Canvas canvas,
   ) {
-    final maxValue = _items.map((e) => e.value).reduce(max);
-    final minValue = _items.map((e) => e.value).reduce(min);
     final paint = Paint()
       ..color = Colors.green
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0;
-    int lineStep =
-        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
-    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+    int lineStep = _getLineStep();
+    double yOffsetStep = _getYOffsetStep();
 
     double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
     for (int i = 0; i < _items.length - 1; i++) {
-      double relativeYposition = (maxValue - _items[i].value) / lineStep;
-      double yOffset = 8 + relativeYposition * yOffsetStep;
-      double relativeYposition2 = (maxValue - _items[i + 1].value) / lineStep;
-      double yOffset2 = 8 + relativeYposition2 * yOffsetStep;
+      double yOffset =
+          _getYOffsetOfPoint(_items[i].value, lineStep, yOffsetStep);
+      double yOffset2 =
+          _getYOffsetOfPoint(_items[i + 1].value, lineStep, yOffsetStep);
       Offset startEntryOffset = Offset(
         leftOffsetStart + offsetStep * i,
         yOffset,
@@ -179,8 +153,6 @@ class GraphPainter extends CustomPainter {
   void _drawCircle(
     Canvas canvas,
   ) {
-    final maxValue = _items.map((e) => e.value).reduce(max);
-    final minValue = _items.map((e) => e.value).reduce(min);
     final paint = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
@@ -189,25 +161,35 @@ class GraphPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..color = Colors.white
       ..strokeWidth = 3.0;
-    int lineStep =
-        ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
-    double yOffsetStep = (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+    int lineStep = _getLineStep();
+    double yOffsetStep = _getYOffsetStep();
 
     double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
     for (int i = 0; i < _items.length; i++) {
-      double relativeYposition2 = (maxValue - _items[i].value) / lineStep;
-      double yOffset2 = 8 + relativeYposition2 * yOffsetStep;
+      double yOffset =
+          _getYOffsetOfPoint(_items[i].value, lineStep, yOffsetStep);
       Offset endEntryOffset = Offset(
         leftOffsetStart + (offsetStep * (i)),
-        yOffset2,
+        yOffset,
       );
       canvas.drawCircle(endEntryOffset, 3.0, paint);
       canvas.drawCircle(endEntryOffset, 3.0, paintC);
     }
   }
 
+  double _getYOffsetOfPoint(double value, int lineStep, double yOffsetStep) {
+    double relativeYposition2 = (maxValue - value) / lineStep;
+    return 8 + relativeYposition2 * yOffsetStep;
+  }
+
+  double _getYOffsetStep() =>
+      (drawingHeight / (numberOfHorizontalLabels - 1)) - 3;
+
+  int _getLineStep() =>
+      ((maxValue - minValue) / (numberOfHorizontalLabels - 1)).ceil();
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+    return _items == _items;
   }
 }

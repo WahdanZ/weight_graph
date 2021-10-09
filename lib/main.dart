@@ -38,9 +38,18 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[WeightGraphWidget()],
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                    color: Colors.grey.shade100, child: WeightGraphWidget()),
+              )
+            ],
+          ),
         ),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
