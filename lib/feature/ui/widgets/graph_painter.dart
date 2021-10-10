@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' hide TextStyle;
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:weight_graph/feature/ui/widgets/graph_entity.dart';
+import 'package:weight_graph/feature/utils.dart';
 
 class GraphPainter extends CustomPainter {
   late double leftOffsetStart;
@@ -17,6 +18,8 @@ class GraphPainter extends CustomPainter {
   late final double minValue;
   late final double maxValue;
   late final List<GraphEntity> _items;
+
+  late List<DateTime> dates = [];
   GraphPainter({
     List<GraphEntity> items = const [],
   }) {
@@ -34,13 +37,13 @@ class GraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    leftOffsetStart = size.width * 0.10;
+    leftOffsetStart = size.width * 0.05;
     topOffsetEnd = size.height * 0.9;
     drawingWidth = size.width * 0.9;
     drawingHeight = topOffsetEnd;
 
-    numberOfVerticalLines =
-        _items.map((e) => e.dateTime).toSet().toList().length;
+    ;
+    numberOfVerticalLines = _addMissingDates().length;
     _drawVerticalLines(canvas);
 
     _drawBottomLabels(canvas);
@@ -51,30 +54,28 @@ class GraphPainter extends CustomPainter {
   }
 
   void _drawBottomLabels(Canvas canvas) {
-    final dates = _items.map((e) => e.dateTime).toSet().toList();
-    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
+    double offsetStep = getXOffsetStep();
     for (int i = 0; i <= dates.length - 1; i++) {
       double offsetX = leftOffsetStart + offsetStep * i;
       TextSpan span = TextSpan(
           style: const TextStyle(color: Colors.grey, fontSize: 10),
-          text: "${dates[i].day} / ${dates[i].month}");
+          text: formatDate(dates[i]));
       TextPainter tp = TextPainter(
           text: span,
           textAlign: TextAlign.center,
           textDirection: TextDirection.ltr);
-      tp.layout();
+      tp.layout(maxWidth: 30);
       tp.paint(canvas, Offset(offsetX - 10, 10.0 + drawingHeight));
     }
   }
 
   void _drawVerticalLines(Canvas canvas) {
-    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
-
-    for (int line = 0; line < numberOfVerticalLines; line++) {
-      final paint = Paint()
-        ..color = Colors.grey.shade200
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
+    double offsetStep = getXOffsetStep();
+    final paint = Paint()
+      ..color = Colors.green.shade200
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    for (int line = 0; line < dates.length; line++) {
       double yOffset = line * offsetStep;
       canvas.drawLine(
           Offset(
@@ -85,6 +86,8 @@ class GraphPainter extends CustomPainter {
           paint);
     }
   }
+
+  double getXOffsetStep() => drawingWidth / (numberOfVerticalLines - 2);
 
   void _drawLeftLabels(Canvas canvas, Size size) {
     double yOffsetStep = _getYOffsetStep();
@@ -114,7 +117,7 @@ class GraphPainter extends CustomPainter {
       ..strokeWidth = 2;
     double dashWidth = 9, dashSpace = 5, startX = leftOffsetStart;
 
-    while (startX < size.width) {
+    while (startX < size.width - _getLineStep() - 5) {
       canvas.drawLine(Offset(startX, drawingHeight / 2),
           Offset(startX + dashWidth, drawingHeight / 2), paint);
       startX += dashWidth + dashSpace;
@@ -132,18 +135,22 @@ class GraphPainter extends CustomPainter {
     int lineStep = _getLineStep();
     double yOffsetStep = _getYOffsetStep();
 
-    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
+    double offsetStep = getXOffsetStep();
     for (int i = 0; i < _items.length - 1; i++) {
       double yOffset =
           _getYOffsetOfPoint(_items[i].value, lineStep, yOffsetStep);
+      double xOffset =
+          _getXOffsetOfPoint(_items[i].dateTime, lineStep, offsetStep);
+      double xOffset2 =
+          _getXOffsetOfPoint(_items[i + 1].dateTime, lineStep, offsetStep);
       double yOffset2 =
           _getYOffsetOfPoint(_items[i + 1].value, lineStep, yOffsetStep);
       Offset startEntryOffset = Offset(
-        leftOffsetStart + offsetStep * i,
+        xOffset,
         yOffset,
       );
       Offset endEntryOffset = Offset(
-        leftOffsetStart + (offsetStep * (i + 1)),
+        xOffset2,
         yOffset2,
       );
       canvas.drawLine(startEntryOffset, endEntryOffset, paint);
@@ -164,17 +171,24 @@ class GraphPainter extends CustomPainter {
     int lineStep = _getLineStep();
     double yOffsetStep = _getYOffsetStep();
 
-    double offsetStep = drawingWidth / (numberOfVerticalLines - 1);
+    double offsetStep = getXOffsetStep();
     for (int i = 0; i < _items.length; i++) {
       double yOffset =
           _getYOffsetOfPoint(_items[i].value, lineStep, yOffsetStep);
+      double xOffset =
+          _getXOffsetOfPoint(_items[i].dateTime, lineStep, offsetStep);
       Offset endEntryOffset = Offset(
-        leftOffsetStart + (offsetStep * (i)),
+        xOffset,
         yOffset,
       );
       canvas.drawCircle(endEntryOffset, 3.0, paint);
       canvas.drawCircle(endEntryOffset, 3.0, paintC);
     }
+  }
+
+  double _getXOffsetOfPoint(DateTime value, int lineStep, double yOffsetStep) {
+    int i = dates.indexWhere((element) => element == value);
+    return leftOffsetStart + yOffsetStep * i;
   }
 
   double _getYOffsetOfPoint(double value, int lineStep, double yOffsetStep) {
@@ -191,5 +205,18 @@ class GraphPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return _items == _items;
+  }
+
+  List<DateTime> _addMissingDates() {
+    var list = _items.map((e) => e.dateTime).toSet().toList();
+    if (list.isEmpty && list.length < 2) return list;
+
+    var result = <DateTime>[];
+    DateTime startDate = list.first;
+    for (int i = 0; i <= list.last.difference(startDate).inDays; i++) {
+      result.add(startDate.add(Duration(days: i)));
+    }
+    dates = result;
+    return result;
   }
 }

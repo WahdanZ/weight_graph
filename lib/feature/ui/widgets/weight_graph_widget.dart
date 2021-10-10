@@ -14,15 +14,31 @@ class WeightGraphWidget extends StatefulWidget {
 }
 
 class _WeightGraphWidgetState extends State<WeightGraphWidget> {
+  late final ScrollController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      _controller
+          .animateTo(_controller.position.maxScrollExtent,
+              duration: const Duration(seconds: 1), curve: Curves.ease)
+          .then((value) async {
+        await Future.delayed(const Duration(seconds: 2));
+        _controller.animateTo(_controller.position.minScrollExtent,
+            duration: const Duration(seconds: 1), curve: Curves.ease);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final _items = List.generate(
         20,
         (index) => GraphEntity(
               Random().nextInt(100).toDouble(),
-              DateTime(2021, 10, index + 1),
+              DateTime(2021, 10, Random().nextInt(30)),
             ));
-    final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(
@@ -33,11 +49,12 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
         },
       ),
       child: SingleChildScrollView(
+        controller: _controller,
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
             SizedBox(
-              width: _items.length * 40,
+              width: _items.length * 60,
               height: height / 2,
               child: CustomPaint(
                 painter: GraphPainter(items: _items),
@@ -50,5 +67,11 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
