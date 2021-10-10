@@ -5,8 +5,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide TextStyle;
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
-import 'package:weight_graph/feature/ui/widgets/graph_entity.dart';
-import 'package:weight_graph/feature/utils.dart';
+import 'package:weight_graph/feature/weight_chart/presentation/index.dart';
+import 'package:weight_graph/utils/utils.dart';
 
 class GraphPainter extends CustomPainter {
   late double leftOffsetStart;
@@ -17,11 +17,11 @@ class GraphPainter extends CustomPainter {
   int numberOfHorizontalLabels = 6;
   late final double minValue;
   late final double maxValue;
-  late final List<GraphEntity> _items;
+  late final List<WeightEntity> _items;
 
   late List<DateTime> dates = [];
   GraphPainter({
-    List<GraphEntity> items = const [],
+    List<WeightEntity> items = const [],
   }) {
     _items = items;
     if (_items.isNotEmpty && _items.length > 1) {
@@ -192,6 +192,9 @@ class GraphPainter extends CustomPainter {
   }
 
   double _getYOffsetOfPoint(double value, int lineStep, double yOffsetStep) {
+    if (lineStep == 0) {
+      return 8;
+    }
     double relativeYposition2 = (maxValue - value) / lineStep;
     return 8 + relativeYposition2 * yOffsetStep;
   }

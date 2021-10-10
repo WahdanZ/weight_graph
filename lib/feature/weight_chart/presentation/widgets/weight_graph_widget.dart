@@ -1,13 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:weight_graph/feature/ui/widgets/graph_painter.dart';
-
-import 'graph_entity.dart';
+import 'package:weight_graph/feature/weight_chart/presentation/index.dart';
 
 class WeightGraphWidget extends StatefulWidget {
-  const WeightGraphWidget({Key? key}) : super(key: key);
+  final List<WeightEntity> wights;
+  const WeightGraphWidget({Key? key, required this.wights}) : super(key: key);
 
   @override
   _WeightGraphWidgetState createState() => _WeightGraphWidgetState();
@@ -33,16 +30,13 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final _items = List.generate(
-        20,
-        (index) => GraphEntity(
-              Random().nextInt(100).toDouble(),
-              DateTime(2021, 10, Random().nextInt(30)),
-            ));
     final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+    final itemsWidth = widget.wights.length * 60;
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(
         scrollbars: true,
+        physics: const BouncingScrollPhysics(),
         dragDevices: {
           PointerDeviceKind.touch,
           PointerDeviceKind.mouse,
@@ -51,19 +45,14 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
       child: SingleChildScrollView(
         controller: _controller,
         scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            SizedBox(
-              width: _items.length * 60,
-              height: height / 2,
-              child: CustomPaint(
-                painter: GraphPainter(items: _items),
-              ),
-            ),
-            const SizedBox(
-              width: 60,
-            )
-          ],
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              //maxWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
+              minWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
+              minHeight: height / 2),
+          child: CustomPaint(
+            painter: GraphPainter(items: widget.wights),
+          ),
         ),
       ),
     );
