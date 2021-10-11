@@ -15,7 +15,7 @@ class BottomSheetDoneButton extends StatelessWidget {
           Icon(Icons.add, size: 28),
           SizedBox(width: 8),
           Text(
-            '+ Add Weight',
+            'Add Weight',
             style: TextStyle(fontSize: 20),
           ),
         ],
