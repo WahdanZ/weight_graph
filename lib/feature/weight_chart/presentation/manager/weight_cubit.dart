@@ -10,16 +10,16 @@ class WeightCubit extends Cubit<WeightState> {
   final RestClient _restClient;
 
   int _wight = 1;
-
+  final int petId = 1;
   DateTime _date = DateTime.now();
   WeightCubit(this._restClient) : super(WeightInitialState());
 
   void loadWeights() async {
     emit(WeightLoadingState());
     try {
-      final data = await _restClient.getWeights();
-      if (data.length > 2) {
-        emit(WeightDataState(_mapToEntity(data)));
+      final data = await _restClient.getWeights(petId.toString());
+      if (data.weights.length > 2) {
+        emit(WeightDataState(_mapToEntity(data.weights)));
       } else {
         emit(WeightNoDataState());
       }
@@ -43,7 +43,8 @@ class WeightCubit extends Cubit<WeightState> {
 
   addCurrentWeight() async {
     try {
-      await _restClient.addWeight(WeightModel(date: _date, weight: _wight));
+      await _restClient.addWeight(
+          petId.toString(), WeightModel(date: _date, weight: _wight));
       loadWeights();
     } catch (e, s) {
       emit(WeightErrorState("Failed to Add data"));

@@ -8,7 +8,7 @@ part of 'rest_clinet.dart';
 
 class _RestClient implements RestClient {
   _RestClient(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://6162956c37492500176315e3.mockapi.io/api';
+    baseUrl ??= 'https://petweight.herokuapp.com/api';
   }
 
   final Dio _dio;
@@ -16,25 +16,23 @@ class _RestClient implements RestClient {
   String? baseUrl;
 
   @override
-  Future<List<WeightModel>> getWeights() async {
+  Future<PetModel> getWeights(petId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch<List<dynamic>>(
-        _setStreamType<List<WeightModel>>(
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<PetModel>(
             Options(method: 'GET', headers: _headers, extra: _extra)
-                .compose(_dio.options, '/weight',
+                .compose(_dio.options, '/$petId/weights',
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    var value = _result.data!
-        .map((dynamic i) => WeightModel.fromJson(i as Map<String, dynamic>))
-        .toList();
+    final value = PetModel.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<void> addWeight(model) async {
+  Future<void> addWeight(petId, model) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -42,7 +40,7 @@ class _RestClient implements RestClient {
     _data.addAll(model.toJson());
     await _dio.fetch<void>(_setStreamType<void>(
         Options(method: 'POST', headers: _headers, extra: _extra)
-            .compose(_dio.options, '/weight',
+            .compose(_dio.options, '/$petId/weights',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     return null;

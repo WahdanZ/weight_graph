@@ -87,7 +87,9 @@ class GraphPainter extends CustomPainter {
     }
   }
 
-  double getXOffsetStep() => drawingWidth / (numberOfVerticalLines - 1);
+  double getXOffsetStep() {
+    return drawingWidth / (numberOfVerticalLines - 1);
+  }
 
   void _drawLeftLabels(Canvas canvas, Size size) {
     double yOffsetStep = _getYOffsetStep();
@@ -186,8 +188,10 @@ class GraphPainter extends CustomPainter {
   }
 
   double _getXOffsetOfPoint(DateTime value, int lineStep, double yOffsetStep) {
-    int i = dates.indexWhere(
-        (element) => element.day == value.day && element.year == value.year);
+    int i = dates.indexWhere((element) =>
+        element.day == value.day &&
+        element.month == value.month &&
+        element.year == value.year);
     return leftOffsetStart + yOffsetStep * i;
   }
 

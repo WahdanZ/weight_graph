@@ -2,15 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import 'index.dart';
+import 'model/pet_model.dart';
 
 part 'rest_clinet.g.dart';
 
-@RestApi(baseUrl: "https://6162956c37492500176315e3.mockapi.io/api")
+@RestApi(baseUrl: "https://petweight.herokuapp.com/api")
 abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
 
-  @GET("/weight")
-  Future<List<WeightModel>> getWeights();
-  @POST("/weight")
-  Future<void> addWeight(@Body() WeightModel model);
+  @GET("/{id}/weights")
+  Future<PetModel> getWeights(@Path("id") String petId);
+  @POST("/{id}/weights")
+  Future<void> addWeight(@Path("id") String petId, @Body() WeightModel model);
 }

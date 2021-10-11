@@ -14,6 +14,7 @@ class WeightGraphWidget extends StatefulWidget {
 
 class _WeightGraphWidgetState extends State<WeightGraphWidget> {
   late final ScrollController _controller;
+  late final int minWidth;
   @override
   void initState() {
     super.initState();
@@ -28,13 +29,19 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
             duration: const Duration(seconds: 1), curve: Curves.ease);
       });
     });
+    widget.wights
+        .sort((pre, current) => pre.dateTime.compareTo(current.dateTime));
+    minWidth = (widget.wights.last.dateTime
+                .difference(widget.wights.first.dateTime)
+                .inDays +
+            1) *
+        60;
   }
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    final itemsWidth = widget.wights.length * 60;
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(
         scrollbars: true,
@@ -50,7 +57,7 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
         child: ConstrainedBox(
           constraints: BoxConstraints(
               //maxWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
-              minWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
+              minWidth: minWidth < width ? width : minWidth.toDouble(),
               minHeight: height),
           child: Padding(
             padding: const EdgeInsets.only(right: 90, left: 10),

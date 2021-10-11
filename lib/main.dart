@@ -16,8 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          WeightCubit(RestClient(Dio()..interceptors.add(LogInterceptor()))),
+      create: (context) => WeightCubit(RestClient(
+          Dio()..interceptors.add(LogInterceptor(responseBody: true)))),
       child: MaterialApp(
         title: 'Weight Demo',
         theme: ThemeData(
