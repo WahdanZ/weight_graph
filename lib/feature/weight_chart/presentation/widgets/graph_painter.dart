@@ -13,6 +13,7 @@ class GraphPainter extends CustomPainter {
   late double topOffsetEnd;
   late double drawingWidth;
   late double drawingHeight;
+  final Color lineColor;
   int numberOfVerticalLines = 5;
   int numberOfHorizontalLabels = 6;
   late final double minValue;
@@ -20,9 +21,8 @@ class GraphPainter extends CustomPainter {
   late final List<WeightEntity> _items;
 
   late List<DateTime> dates = [];
-  GraphPainter({
-    List<WeightEntity> items = const [],
-  }) {
+  GraphPainter(
+      {List<WeightEntity> items = const [], this.lineColor = Colors.green}) {
     _items = items;
     if (_items.isNotEmpty && _items.length > 1) {
       _items.sort((l, r) => l.dateTime.compareTo(r.dateTime));
@@ -64,7 +64,7 @@ class GraphPainter extends CustomPainter {
           text: span,
           textAlign: TextAlign.center,
           textDirection: TextDirection.ltr);
-      tp.layout(maxWidth: 30);
+      tp.layout();
       tp.paint(canvas, Offset(offsetX - 10, 10.0 + drawingHeight));
     }
   }
@@ -72,7 +72,7 @@ class GraphPainter extends CustomPainter {
   void _drawVerticalLines(Canvas canvas) {
     double offsetStep = getXOffsetStep();
     final paint = Paint()
-      ..color = Colors.green.shade200
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     for (int line = 0; line < dates.length; line++) {
@@ -87,7 +87,7 @@ class GraphPainter extends CustomPainter {
     }
   }
 
-  double getXOffsetStep() => drawingWidth / (numberOfVerticalLines - 2);
+  double getXOffsetStep() => drawingWidth / (numberOfVerticalLines - 1);
 
   void _drawLeftLabels(Canvas canvas, Size size) {
     double yOffsetStep = _getYOffsetStep();
@@ -106,18 +106,17 @@ class GraphPainter extends CustomPainter {
           textDirection: TextDirection.ltr);
       tp.layout(maxWidth: 20);
       tp.paint(canvas, Offset(leftOffsetStart - 20, yOffset + 5));
-      //   _drawHorizontalLine(canvas, yOffset + 5, size);
     }
   }
 
   void _drawHorizontalLine(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.green.shade200
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     double dashWidth = 9, dashSpace = 5, startX = leftOffsetStart;
-
-    while (startX < size.width - _getLineStep() - 5) {
+    final width = (numberOfVerticalLines) * getXOffsetStep();
+    while (startX <= width) {
       canvas.drawLine(Offset(startX, drawingHeight / 2),
           Offset(startX + dashWidth, drawingHeight / 2), paint);
       startX += dashWidth + dashSpace;
@@ -128,7 +127,7 @@ class GraphPainter extends CustomPainter {
     Canvas canvas,
   ) {
     final paint = Paint()
-      ..color = Colors.green
+      ..color = lineColor
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0;
@@ -161,7 +160,7 @@ class GraphPainter extends CustomPainter {
     Canvas canvas,
   ) {
     final paint = Paint()
-      ..color = Colors.green
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
     final paintC = Paint()
@@ -187,7 +186,8 @@ class GraphPainter extends CustomPainter {
   }
 
   double _getXOffsetOfPoint(DateTime value, int lineStep, double yOffsetStep) {
-    int i = dates.indexWhere((element) => element == value);
+    int i = dates.indexWhere(
+        (element) => element.day == value.day && element.year == value.year);
     return leftOffsetStart + yOffsetStep * i;
   }
 
@@ -216,7 +216,7 @@ class GraphPainter extends CustomPainter {
 
     var result = <DateTime>[];
     DateTime startDate = list.first;
-    for (int i = 0; i <= list.last.difference(startDate).inDays; i++) {
+    for (int i = 0; i <= list.last.difference(startDate).inDays + 1; i++) {
       result.add(startDate.add(Duration(days: i)));
     }
     dates = result;

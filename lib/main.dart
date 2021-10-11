@@ -16,10 +16,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => WeightCubit(RestClient(Dio())),
+      create: (context) =>
+          WeightCubit(RestClient(Dio()..interceptors.add(LogInterceptor()))),
       child: MaterialApp(
         title: 'Weight Demo',
-        theme: ThemeData(),
+        theme: ThemeData(
+            primaryColor: Colors.orange, accentColor: Colors.orangeAccent),
         home: const WeighPage(),
       ),
     );

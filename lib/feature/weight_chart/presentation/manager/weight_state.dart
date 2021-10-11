@@ -7,8 +7,16 @@ class WeightInitialState extends WeightState {}
 
 class WeightLoadingState extends WeightState {}
 
-class WeightDataaState extends WeightState {
+class WeightDataState extends WeightState {
   final List<WeightEntity> weights;
 
-  WeightDataaState(this.weights);
+  WeightDataState(this.weights);
+}
+
+class WeightNoDataState extends WeightState {}
+
+class WeightErrorState extends WeightState {
+  final String error;
+
+  WeightErrorState(this.error);
 }

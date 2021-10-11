@@ -12,5 +12,5 @@ abstract class RestClient {
   @GET("/weight")
   Future<List<WeightModel>> getWeights();
   @POST("/weight")
-  Future<void> addWeight(WeightModel model);
+  Future<void> addWeight(@Body() WeightModel model);
 }

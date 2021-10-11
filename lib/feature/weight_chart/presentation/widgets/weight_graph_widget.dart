@@ -1,9 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:weight_graph/feature/weight_chart/presentation/index.dart';
+import 'package:weight_graph/styles/app_colors.dart';
 
 class WeightGraphWidget extends StatefulWidget {
   final List<WeightEntity> wights;
+
   const WeightGraphWidget({Key? key, required this.wights}) : super(key: key);
 
   @override
@@ -49,9 +51,13 @@ class _WeightGraphWidgetState extends State<WeightGraphWidget> {
           constraints: BoxConstraints(
               //maxWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
               minWidth: itemsWidth < width ? width : itemsWidth.toDouble(),
-              minHeight: height / 2),
-          child: CustomPaint(
-            painter: GraphPainter(items: widget.wights),
+              minHeight: height),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 90, left: 10),
+            child: CustomPaint(
+              painter: GraphPainter(
+                  items: widget.wights, lineColor: AppColors.graphLineColor),
+            ),
           ),
         ),
       ),
