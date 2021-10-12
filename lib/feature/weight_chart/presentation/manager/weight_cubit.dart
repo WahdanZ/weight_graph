@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
@@ -10,7 +12,7 @@ class WeightCubit extends Cubit<WeightState> {
   final RestClient _restClient;
 
   int _wight = 1;
-  final int petId = 1;
+  final int petId = Random().nextInt(100);
   DateTime _date = DateTime.now();
   WeightCubit(this._restClient) : super(WeightInitialState());
 

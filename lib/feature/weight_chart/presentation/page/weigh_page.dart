@@ -136,6 +136,8 @@ class _WeighPageState extends State<WeighPage> {
                                               minimumYear:
                                                   DateTime.now().year - 1,
                                               maximumYear: DateTime.now().year,
+                                              maximumDate: DateTime.now().add(
+                                                  const Duration(seconds: 60)),
                                               initialDateTime: DateTime.now(),
                                               mode:
                                                   CupertinoDatePickerMode.date,

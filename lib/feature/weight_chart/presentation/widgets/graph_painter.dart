@@ -72,7 +72,7 @@ class GraphPainter extends CustomPainter {
   void _drawVerticalLines(Canvas canvas) {
     double offsetStep = getXOffsetStep();
     final paint = Paint()
-      ..color = lineColor
+      ..color = Colors.grey.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     for (int line = 0; line < dates.length; line++) {
