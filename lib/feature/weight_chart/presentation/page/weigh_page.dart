@@ -101,7 +101,7 @@ class _WeighPageState extends State<WeighPage> {
                                       children: const [
                                         Expanded(
                                             child: Text(
-                                          "Wight",
+                                          "Weight",
                                           textAlign: TextAlign.center,
                                           style: labelTextStyle,
                                         )),
