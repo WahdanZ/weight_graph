@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:weight_graph/feature/weight_chart/presentation/widgets/bottom_sheet_done_button.dart';
 
@@ -9,7 +10,7 @@ void showAppSheetBottomSheet(
   required Widget child,
   required VoidCallback onClicked,
 }) =>
-    Platform.isIOS
+    kIsWeb || Platform.isIOS
         ? showCupertinoModalPopup(
             context: context,
             builder: (context) => CupertinoActionSheet(
